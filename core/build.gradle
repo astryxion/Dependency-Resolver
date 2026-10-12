@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+}
+
+version = property('mod_version')
+group = 'com.dependencyresolver'
+
+base {
+    archivesName = 'dependencyresolver-agent'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.modularity.inferModulePath.set(true)
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.minecraftforge.net/' }
+}
+
+dependencies {
+    compileOnly 'cpw.mods:modlauncher:10.0.9'
+    compileOnly('net.minecraftforge:fmlloader:1.20.1-47.4.10') { transitive = false }
+    compileOnly('net.minecraftforge:forgespi:7.0.1') { transitive = false }
+    testRuntimeOnly 'cpw.mods:modlauncher:10.0.9'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+        showStandardStreams = false
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes(
+                'Premain-Class': 'com.dependencyresolver.bootstrap.DependencyBootstrap',
+                'Agent-Class': 'com.dependencyresolver.bootstrap.DependencyBootstrap',
+                'Main-Class': 'com.dependencyresolver.bootstrap.DependencyBootstrap',
+                'Can-Redefine-Classes': 'false',
+                'Can-Retransform-Classes': 'false',
+                'Implementation-Title': 'Dependency Resolver Agent',
+                'Implementation-Version': project.version
+        )
+    }
+}
